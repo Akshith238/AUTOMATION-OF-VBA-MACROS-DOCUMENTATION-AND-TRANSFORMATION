@@ -7,7 +7,7 @@ from pdf_generator import generate_pdf
 from gemini_enhancer import enhance_explanation_with_gemini
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Set a secret key for flash messages
+app.secret_key = '' 
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 ALLOWED_EXTENSIONS = {'xlsm', 'xls'}

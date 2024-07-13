@@ -1,0 +1,139 @@
+# Python specific ignores
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+*.dist-info/
+build/
+develop-eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environment
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.virtualenv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+*.log
+local_settings.py
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pylint
+.pylint.d/
+
+# pyre
+.pyre/
+
+# Environments
+.env
+.env.*
+
+# Jupyter Notebook environment
+.ipynb_checkpoints/
+
+# VBA Macros
+*.xlsm
+
+# Python Editor
+*.sublime-workspace
+*.sublime-project
+
+# Flask
+instance/
+.pytest_cache/
+
+# Local SQLite database
+*.sqlite3
+
+# Flask/Python Server
+*.pid
+
+# Firebase
+firebase-debug.log
+
+# Other files
+*.bak
+*.swp
+
+# Ignore output files
+/output/
+*.pdf
+*.png
+
+# Macros output files
+/macros_output/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Ignore node_modules for React projects
+node_modules/
