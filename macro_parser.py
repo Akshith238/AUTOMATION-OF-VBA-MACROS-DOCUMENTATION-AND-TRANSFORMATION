@@ -3,6 +3,8 @@ import os
 import re
 import win32com.client
 import pythoncom
+import graphviz
+import base64 
 
 logger = logging.getLogger(__name__)
 
@@ -250,14 +252,18 @@ class MacroParser:
         else:
             return "Supports business operations through data processing"
 
-    def extract_functional_logic(self, parsed_macros):
+    def extract_functional_logic(self, parsed_macros, output_dir="output"):
         logic_explanations = []
         for macro in parsed_macros:
-            logic_explanations.append(self.explain_macro_logic(macro))
+            explanation = self.explain_macro_logic(macro)
+            if isinstance(explanation, dict):
+                flowchart_file = self.save_process_flowchart(macro, output_dir)
+                explanation['process_flowchart'] = flowchart_file
+            logic_explanations.append(explanation)
         return logic_explanations
 
     def explain_macro_logic(self, macro):
-        explanation = {
+        return {
             'name': macro['name'],
             'type': macro['type'],
             'purpose': self.infer_purpose(macro),
@@ -266,33 +272,79 @@ class MacroParser:
             'outputs': self.explain_outputs(macro),
             'business_impact': self.infer_business_impact(macro)
         }
-        return explanation
 
-    # def generate_functional_documentation(self, logic_explanations):
-    #     doc = []
-    #     doc.append("# Functional Logic Explanation of VBA Macros\n")
-
-    #     for explanation in logic_explanations:
-    #         doc.append(f"## {explanation['type']} {explanation['name']}\n")
-    #         doc.append(f"**Purpose:** {explanation['purpose']}\n")
-    #         doc.append(f"**Inputs:** {explanation['inputs']}\n")
-    #         doc.append(f"**Process:** {explanation['process']}\n")
-    #         doc.append(f"**Outputs:** {explanation['outputs']}\n")
-    #         doc.append(f"**Business Impact:** {explanation['business_impact']}\n")
-    #         doc.append(f"**Enhanced Explanation:** {explanation['enhanced_explanation']}\n")
-    #         doc.append("\n")
-
-    #     return "\n".join(doc)
-    
     def generate_functional_documentation(self, logic_explanations):
         doc = []
         doc.append("# Functional Logic Explanation of VBA Macros\n")
 
         for explanation in logic_explanations:
-            doc.append(explanation)
-            doc.append("\n---\n")  # Add a separator between macro explanations
+            if isinstance(explanation, dict):
+                # If explanation is a dictionary, use the structured format
+                doc.append(f"**Name:** {explanation.get('name', 'Unnamed')}\n")
+                doc.append(f"**Type:** {explanation.get('type', 'Macro')}\n")
+                doc.append(f"**Purpose:** {explanation.get('purpose', 'N/A')}\n")
+                doc.append(f"**Inputs:**\n{explanation.get('inputs', 'N/A')}\n")
+                doc.append(f"**Process:**\n{explanation.get('process', 'N/A')}\n")
+                doc.append(f"**Outputs:**\n{explanation.get('outputs', 'N/A')}\n")
+                doc.append(f"**Business Impact:**\n{explanation.get('business_impact', 'N/A')}\n")
+                
+                if 'process_flowchart' in explanation:
+                    flowchart_path = explanation['process_flowchart']
+                    if os.path.exists(flowchart_path):
+                        with open(flowchart_path, "rb") as image_file:
+                            encoded_string = base64.b64encode(image_file.read()).decode()
+                        doc.append(f"**Process Flowchart:**\n")
+                        doc.append(f"![Process Flowchart](data:image/png;base64,{encoded_string})\n")
+                    else:
+                        doc.append(f"**Process Flowchart:** Flowchart image not found at {flowchart_path}\n")
+                else:
+                    doc.append("**Process Flowchart:** Not available\n")
+            else:
+                # If explanation is a string, append it as is
+                doc.append(explanation)
+            
+            doc.append("---\n")
 
         return "\n".join(doc)
+
+    def generate_process_flowchart(self, macro):
+        dot = graphviz.Digraph(comment=f'Process Flow for {macro["name"]}')
+        dot.attr(rankdir='TB')
+
+        # Parse the macro code to identify steps
+        lines = macro['code'].split('\n')
+        steps = []
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith("'"):  # Ignore comments
+                steps.append(line)
+
+        # Create nodes and edges
+        dot.node('Start', 'Start', shape='ellipse')
+        previous_node = 'Start'
+        for i, step in enumerate(steps):
+            node_id = f'step_{i}'
+            if 'For' in step or 'Do While' in step:
+                dot.node(node_id, step, shape='diamond')
+            elif 'If' in step:
+                dot.node(node_id, step, shape='diamond')
+            else:
+                dot.node(node_id, step, shape='rectangle')
+            dot.edge(previous_node, node_id)
+            previous_node = node_id
+
+        dot.node('End', 'End', shape='ellipse')
+        dot.edge(previous_node, 'End')
+
+        return dot
+
+    def save_process_flowchart(self, macro, output_dir):
+        dot = self.generate_process_flowchart(macro)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        output_file = os.path.join(output_dir, f"{macro['name']}_process_flow")
+        dot.render(output_file, format='png', cleanup=True)
+        return f"{output_file}.png"
     
 # Usage
 if __name__ == "__main__":
@@ -302,3 +354,4 @@ if __name__ == "__main__":
     logic_explanations = parser.extract_functional_logic(parsed_macros)
     functional_documentation = parser.generate_functional_documentation(logic_explanations)
     print(functional_documentation)
+
