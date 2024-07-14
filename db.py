@@ -25,17 +25,31 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-def save_document(name, pdf_data, macros):
+def save_document(name, pdf_data, macros, logic_explanations):
     document = Document(name=name, generated_pdf=pdf_data)
     session.add(document)
     session.commit()
 
-    for macro in macros:
-        macro_record = Macro(name=macro['name'], document_id=document.id, efficient=macro.get('efficient', False), flowchart=macro.get('flowchart'))
-        session.add(macro_record)
-    session.commit()
+    for idx, macro in enumerate(macros):
+        # Read flowchart file as bytes
+        flowchart_path = logic_explanations[idx]['process_flowchart'] if idx < len(logic_explanations) else None
+        flowchart_bytes = None
+        if flowchart_path:
+            with open(flowchart_path, 'rb') as f:
+                flowchart_bytes = f.read()
 
+        # Insert macro record into database
+        macro_record = Macro(
+            name=macro['name'],
+            document_id=document.id,
+            efficient=macro.get('efficient', False),
+            flowchart=flowchart_bytes
+        )
+        session.add(macro_record)
+
+    session.commit()
     return document.id
+
 
 def get_all_documents():
     return session.query(Document).all()

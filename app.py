@@ -55,7 +55,7 @@ def upload_file():
                 
                 logic_explanations = parser.extract_functional_logic(parsed_macros)
                 logger.info(f"Logic explanations: {logic_explanations}")
-                
+                print(logic_explanations)
                 # Enhance explanations with Gemini
                 enhanced_explanations = []
                 for explanation in logic_explanations:
@@ -73,7 +73,7 @@ def upload_file():
                     pdf_data = pdf_file.read()
                 
                 # Save document and macros in the database
-                document_id = save_document(filename, pdf_data, parsed_macros)
+                document_id = save_document(filename, pdf_data, parsed_macros, logic_explanations)
                 logger.info(f"Document saved with ID: {document_id}")
                 
                 # Clean up: remove the uploaded and generated files
@@ -82,7 +82,7 @@ def upload_file():
                 if os.path.exists(pdf_path):
                     os.remove(pdf_path)
 
-                return send_file(io.BytesIO(pdf_data), attachment_filename=f"{filename}.pdf", as_attachment=True)
+                return send_file(io.BytesIO(pdf_data), download_name=f"{filename}.pdf", as_attachment=True)
             except Exception as e:
                 logger.error(f"Error processing file: {str(e)}", exc_info=True)
                 flash(f"Error processing file: {str(e)}")
@@ -103,7 +103,7 @@ def view_all_documents():
 def view_document_by_id(document_id):
     document = get_document_by_id(document_id)
     if document:
-        return send_file(io.BytesIO(document.generated_pdf), attachment_filename=f"{document.name}.pdf", as_attachment=True)
+        return send_file(io.BytesIO(document.generated_pdf), download_name=f"{document.name}.pdf", as_attachment=True)
     return jsonify({'error': 'Document not found'}), 404
 
 @app.route('/macros', methods=['GET'])
