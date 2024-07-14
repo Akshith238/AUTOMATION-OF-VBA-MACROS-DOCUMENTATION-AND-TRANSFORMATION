@@ -5,6 +5,8 @@ import win32com.client
 import pythoncom
 import graphviz
 import base64 
+import win32com.client as win32
+from oletools.olevba import VBA_Parser
 
 logger = logging.getLogger(__name__)
 
@@ -16,29 +18,37 @@ class MacroParser:
 
     def load_from_excel(self, file_path):
         pythoncom.CoInitialize()
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = False
         try:
             logger.info(f"Attempting to open file: {file_path}")
+
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}")
-            
-            workbook = excel.Workbooks.Open(file_path)
-            for component in workbook.VBProject.VBComponents:
-                if component.Type in [1, 2, 3]:  # Modules, Class Modules, and Forms
-                    code_module = component.CodeModule
-                    lines = code_module.CountOfLines
-                    if lines > 0:
-                        self.macro_code += code_module.Lines(1, lines) + "\n\n"
-            workbook.Close(SaveChanges=False)
-            logger.info("Successfully loaded macro code from Excel file")
+            if not file_path.lower().endswith(('.xls', '.xlsx', '.xlsm')):
+                raise ValueError("The provided file is not an Excel file.")
+
+            self.macro_code = self.extract_vba_from_excel(file_path)
+            if self.macro_code:
+                logger.info("Successfully loaded macro code from Excel file")
+            else:
+                logger.warning("No VBA macros found in the Excel file")
+
         except Exception as e:
             logger.error(f"Error reading Excel file: {str(e)}")
             raise
+
         finally:
-            excel.Quit()
             pythoncom.CoUninitialize()
 
+    def extract_vba_from_excel(self, file_path):
+        vba_code = ""
+
+        vba_parser = VBA_Parser(file_path)
+        if vba_parser.detect_vba_macros():
+            for (filename, stream_path, vba_filename, vba_code_chunk) in vba_parser.extract_macros():
+                vba_code += vba_code_chunk
+
+        vba_parser.close()
+        return vba_code
     def parse_macros(self):
         self.analyze_global_variables()
         procedures = re.split(r'(Sub |Function )', self.macro_code)[1:]

@@ -9,7 +9,8 @@ class Document(Base):
     __tablename__ = 'document'
     id = Column(Integer, primary_key=True)
     name = Column(String(120), nullable=False)
-    generated_pdf = Column(LargeBinary, nullable=True)
+    functional_pdf = Column(LargeBinary, nullable=True)
+    analysis_pdf = Column(LargeBinary, nullable=True)
     macros = relationship('Macro', backref='document', lazy=True)
 
 class Macro(Base):
@@ -25,8 +26,8 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-def save_document(name, pdf_data, macros, logic_explanations):
-    document = Document(name=name, generated_pdf=pdf_data)
+def save_document(name, functional_pdf_data, analysis_pdf_data, macros, logic_explanations):
+    document = Document(name=name, functional_pdf=functional_pdf_data, analysis_pdf=analysis_pdf_data)
     session.add(document)
     session.commit()
 
@@ -49,7 +50,6 @@ def save_document(name, pdf_data, macros, logic_explanations):
 
     session.commit()
     return document.id
-
 
 def get_all_documents():
     return session.query(Document).all()
