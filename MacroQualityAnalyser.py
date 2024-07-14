@@ -41,8 +41,8 @@ class MacroQualityAnalyzer:
         texts = text_splitter.split_text(self.vba_code)
 
         genai.configure(api_key='AIzaSyCqEKwd23ztVuk-dkCXypjeHWlcs41aCSM')
-        model = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key='AIzaSyCqEKwd23ztVuk-dkCXypjeHWlcs41aCSM', temperature=0.2, convert_system_message_to_human=True)
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key='AIzaSyCqEKwd23ztVuk-dkCXypjeHWlcs41aCSM')
+        model = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key='', temperature=0.2, convert_system_message_to_human=True)
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key='')
         vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k":5})
 
         template = """
