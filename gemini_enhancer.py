@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Configure the Gemini API
-genai.configure(api_key='AIzaSyAgJ5nUu2VYsUVmOv6yYqdBgtgytYHI_7I')
+genai.configure(api_key='')
 
 def enhance_explanation_with_gemini(explanation):
     try:
